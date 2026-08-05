@@ -1,5 +1,6 @@
 import LowDegree.Asymptotics.Basic
 import LowDegree.Combinatorics.TreeDecomposition
+import LowDegree.PlantedModel
 import LowDegree.Probability.Finite
 import Mathlib.Analysis.SpecificLimits.Basic
 
@@ -26,20 +27,14 @@ def FixedNoiseConclusion
   ∀ ε : NoiseRate,
     TendsToOne (noisedNormSq ε) ∧ Vanishes (noisedTotalVariation ε)
 
-/-- The typed signature of the data appearing in paper Theorem 1.1.
+/-- The concrete model data appearing in paper Theorem 1.1.
 
 Writing each plant on `Fin n` incorporates the printed condition
 `|V(Γₙ)| ≤ n`: a smaller plant is represented by adding isolated ambient
 vertices.  `treewidthBound` is an upper bound rather than a numerical
 treewidth equality, exactly matching what the proof consumes.
-
-The three scalar fields are the paper's low-degree second moment, noised full
-second moment, and noised total-variation distance.  A future model-facing
-module must construct them from `Qₙ`, `Pₙ`, and their likelihood ratios.  This
-structure records their theorem-level types without pretending that bridge is
-already implemented.
 -/
-structure BoundedTreewidthLowDegreeProfile where
+structure BoundedTreewidthPlantModel where
   backgroundDensity : ℝ
   backgroundDensity_pos : 0 < backgroundDensity
   plant : (n : ℕ) → SimpleGraph (Fin n)
@@ -48,23 +43,45 @@ structure BoundedTreewidthLowDegreeProfile where
     TreeDecomposition.HasTreewidthAtMost (plant n) (treewidthBound n)
   degreeCutoff : ℕ → ℕ
   degreeCutoff_pos : ∀ n, 0 < degreeCutoff n
-  lowDegreeNormSq : ℕ → ℝ
-  noisedNormSq : NoiseRate → ℕ → ℝ
-  noisedTotalVariation : NoiseRate → ℕ → ℝ
+
+namespace BoundedTreewidthPlantModel
+
+/-- The honest Bernoulli parameter sequence for the sparse background. -/
+noncomputable def parameter (M : BoundedTreewidthPlantModel) (n : ℕ) :
+    BernoulliParameter :=
+  sparseBernoulliParameter M.backgroundDensity n
+
+/-- The model-realized low-degree second moment in Theorem 1.1's premise. -/
+noncomputable def lowDegreeNormSq (M : BoundedTreewidthPlantModel) (n : ℕ) : ℝ :=
+  plantedLowDegreeNormSq (M.parameter n) (M.plant n) (M.degreeCutoff n)
+
+/-- The model-realized full second moment after fixed-rate edge noise. -/
+noncomputable def noisedNormSq (M : BoundedTreewidthPlantModel)
+    (ε : NoiseRate) (n : ℕ) : ℝ :=
+  plantedNoisedNormSq (M.parameter n) ε (M.plant n)
+
+/-- The actual total variation distance between the noised planted and null
+finite laws. -/
+noncomputable def noisedTotalVariation (M : BoundedTreewidthPlantModel)
+    (ε : NoiseRate) (n : ℕ) : ℝ :=
+  plantedNoisedTotalVariation (M.parameter n) ε (M.plant n)
+
+end BoundedTreewidthPlantModel
 
 /-- **Formal statement of paper Theorem 1.1 (proof pending).**
 
 This definition encodes the exact logical implication and quantifier order of
-the bounded-treewidth low-degree consequence.  It is a `Prop`, not an axiom or
-a proved theorem: the central graph/Fourier transfer still requires the
-model-facing likelihood-ratio construction and the tree-decomposition
-existence proof documented in `docs/PAPER_MAP.md`.
+the bounded-treewidth low-degree consequence.  Unlike the earlier scalar
+profile, all three observables are definitionally tied to the concrete planted
+and noised laws and their likelihood ratios.  It remains a `Prop`, not an axiom
+or a proved theorem: the graph-sum transfer and tree-decomposition existence
+proof are still required.
 -/
 def main_lowDegree_to_noisedL2_and_tv_statement
-    (P : BoundedTreewidthLowDegreeProfile) : Prop :=
-  TreewidthDegreeScale P.treewidthBound P.degreeCutoff →
-  TendsToOne P.lowDegreeNormSq →
-  FixedNoiseConclusion P.noisedNormSq P.noisedTotalVariation
+    (M : BoundedTreewidthPlantModel) : Prop :=
+  TreewidthDegreeScale M.treewidthBound M.degreeCutoff →
+  TendsToOne M.lowDegreeNormSq →
+  FixedNoiseConclusion M.noisedNormSq M.noisedTotalVariation
 
 /-- The geometric series used in the connected-component cluster expansion. -/
 theorem geometric_connected_mass {θ : ℝ} (hθ0 : 0 ≤ θ) (hθ1 : θ < 1) :
@@ -114,6 +131,54 @@ structure SecondMomentCertificate where
 
 namespace SecondMomentCertificate
 
+/-- Build the analytic endgame certificate from actual finite laws and a
+pointwise likelihood ratio.  In the model-facing proof, `p n` will be the
+noised planted law, `q n` the Erdős--Rényi law, and `L n` the noised
+likelihood ratio. -/
+noncomputable def ofLikelihood
+    {Ω : ℕ → Type*} [∀ n, Fintype (Ω n)]
+    (p q : ∀ n, FiniteLaw (Ω n))
+    (L : ∀ n, Ω n → ℝ)
+    (hL : ∀ n, FiniteLaw.IsLikelihoodRatio (p n) (q n) (L n)) :
+    SecondMomentCertificate where
+  normSq n := (q n).expect (fun ω ↦ (L n ω) ^ 2)
+  totalVariation n := (p n).tv (q n)
+  chiSq_nonneg n := by
+    rw [← FiniteLaw.expect_sq_sub_one (hL n)]
+    exact Finset.sum_nonneg fun ω _ ↦
+      mul_nonneg ((q n).mass_nonneg ω) (sq_nonneg (L n ω - 1))
+  tv_nonneg n := FiniteLaw.tv_nonneg (p n) (q n)
+  tv_le n := FiniteLaw.tv_le_half_sqrt_chiSq (hL n)
+
+/-- The analytic certificate attached to the actual noised planted model. -/
+noncomputable def ofNoisedPlant
+    (M : BoundedTreewidthPlantModel) (ε : NoiseRate) :
+    SecondMomentCertificate :=
+  ofLikelihood
+    (fun n ↦ noisedPlantedLaw (M.parameter n) ε (M.plant n))
+    (fun n ↦ erdosRenyiLaw (M.parameter n))
+    (fun n ↦ noisedLikelihood (M.parameter n) ε (M.plant n))
+    (fun n ↦ noisedLikelihood_isLikelihoodRatio
+      (M.parameter n) ε (M.plant n))
+
+@[simp]
+theorem ofNoisedPlant_normSq
+    (M : BoundedTreewidthPlantModel) (ε : NoiseRate) (n : ℕ) :
+    (ofNoisedPlant M ε).normSq n = M.noisedNormSq ε n := by
+  simp only [ofNoisedPlant, ofLikelihood, BoundedTreewidthPlantModel.noisedNormSq,
+    plantedNoisedNormSq, FiniteLaw.expect, bernoulliInner,
+    bernoulliExpectation, erdosRenyiLaw, bernoulliProductLaw]
+  apply Finset.sum_congr rfl
+  intro x hx
+  ring
+
+@[simp]
+theorem ofNoisedPlant_totalVariation
+    (M : BoundedTreewidthPlantModel) (ε : NoiseRate) (n : ℕ) :
+    (ofNoisedPlant M ε).totalVariation n =
+      M.noisedTotalVariation ε n :=
+  rfl
+
 /-- A noised likelihood ratio with second moment `1+o(1)` has TV `o(1)`.
 This is the asymptotic Cauchy--Schwarz step in Theorem 1.1. -/
 theorem totalVariation_vanishes (C : SecondMomentCertificate)
@@ -147,6 +212,29 @@ theorem fixedNoiseConclusion
       (fun ε ↦ (C ε).totalVariation) := by
   intro ε
   exact (C ε).noisedL2_and_tv (hnorm ε)
+
+/-- Model-realized analytic endgame: once the graph argument proves the full
+noised second moment for each fixed rate, the paper's TV conclusion follows
+for the actual planted and null laws. -/
+theorem fixedNoiseConclusion_of_model
+    (M : BoundedTreewidthPlantModel)
+    (hnorm : ∀ ε : NoiseRate, TendsToOne (M.noisedNormSq ε)) :
+    FixedNoiseConclusion M.noisedNormSq M.noisedTotalVariation := by
+  intro ε
+  refine ⟨hnorm ε, ?_⟩
+  have hcert : TendsToOne (ofNoisedPlant M ε).normSq := by
+    have heq : (ofNoisedPlant M ε).normSq = M.noisedNormSq ε := by
+      funext n
+      exact ofNoisedPlant_normSq M ε n
+    rw [heq]
+    exact hnorm ε
+  have htv := (ofNoisedPlant M ε).totalVariation_vanishes hcert
+  have heq : (ofNoisedPlant M ε).totalVariation =
+      M.noisedTotalVariation ε := by
+    funext n
+    exact ofNoisedPlant_totalVariation M ε n
+  rw [heq] at htv
+  exact htv
 
 end SecondMomentCertificate
 

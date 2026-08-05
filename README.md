@@ -7,17 +7,25 @@ Chen and Shuangping Li.
 ## Current scope
 
 The project formalizes reusable proof kernels for finite Bernoulli Fourier
-analysis, total variation and second moments, isomorphism-triple counting,
-tree-decomposition bookkeeping, and the paper's asymptotic arguments. It also
+analysis, total variation and second moments, concrete graph-copy and
+isomorphism-triple counting, tree-decomposition bookkeeping, and the paper's
+asymptotic arguments. It also
 contains an exact Lean proposition for the bounded-treewidth low-degree
 consequence, including the pointwise quantifier “for every fixed
 `ε ∈ (0,1)`.”
 
-This is not yet a complete verification of the paper's main theorem. In
-particular, the graph-facing construction of the planted laws and likelihood
-ratios, and the existence proof for the required bounded-overlap tree
-decomposition, remain to be formalized. The repository deliberately uses no
-`sorry`, `admit`, or project axiom to hide those gaps. See
+This is not yet a complete verification of the paper's main theorem. The
+finite Erdős--Rényi, planted, deleted, and noised laws and their genuine
+likelihood ratios are now formalized, including the exact identity between
+deletion before superposition and resampling afterward. Paper Lemmas 3.1,
+3.2, 3.3, 4.1, and 4.2 and Definition 5.2 have concrete proofs. Equation
+(4.4), the intrinsic weighted subcubic-tree partition core of Lemma 5.4, its
+arbitrary-tree rooting adapter, and the short-cycle pruning estimate in Lemma
+A.3 are also verified. The remaining main gaps are the classwise Fourier
+regrouping and aggregate restriction arguments, the label-preserving cluster
+quotient, and existence of the required edge-owned bounded-overlap
+decomposition. The repository deliberately uses no `sorry`, `admit`, or
+project axiom to hide those gaps. See
 [`docs/PAPER_MAP.md`](docs/PAPER_MAP.md) for the statement-by-statement audit.
 
 ## Main formal statement
@@ -39,9 +47,11 @@ imply, for every fixed noise rate `ε ∈ (0,1)`,
 and TV(Tε Pₙ, Qₙ) = o(1).
 ```
 
-The declaration is a proposition marked as proof-pending, not an axiom. The
-verified `SecondMomentCertificate.fixedNoiseConclusion` supplies the final
-`L² → TV` step once the noised second-moment estimate is established.
+The declaration is a proposition marked as proof-pending, not an axiom. Its
+norm and TV sequences are definitionally constructed from the concrete finite
+laws. The verified `SecondMomentCertificate.fixedNoiseConclusion_of_model`
+supplies the final `L² → TV` step once the noised second-moment estimate is
+established.
 
 ## Build
 

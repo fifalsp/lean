@@ -46,9 +46,35 @@ namespace Decomposition
 
 variable {G : SimpleGraph V} [Fintype X] (D : Decomposition G X)
 
+/-- Width of a particular decomposition: the largest bag cardinality minus
+one, exactly as in paper Definition 5.2.  `Finset.sup` returns zero on an
+empty node type, although `D.isTree` in fact guarantees a nonempty tree. -/
+noncomputable def width : ℕ :=
+  (Finset.univ.sup fun x : X ↦ (D.bag x).card) - 1
+
 /-- The decomposition has width at most `k`, expressed without a subtraction:
 every bag has at most `k+1` vertices. -/
 def WidthAtMost (k : ℕ) : Prop := ∀ x : X, (D.bag x).card ≤ k + 1
+
+/-- The subtraction-free predicate agrees with the paper's numerical width. -/
+theorem width_le_iff {k : ℕ} : D.width ≤ k ↔ D.WidthAtMost k := by
+  classical
+  let M : ℕ := Finset.univ.sup fun x : X ↦ (D.bag x).card
+  have hbag_le (x : X) : (D.bag x).card ≤ M := by
+    exact Finset.le_sup (s := Finset.univ) (f := fun y : X ↦ (D.bag y).card)
+      (Finset.mem_univ x)
+  constructor
+  · intro h x
+    change M - 1 ≤ k at h
+    have hx := hbag_le x
+    omega
+  · intro h
+    change M - 1 ≤ k
+    have hM : M ≤ k + 1 := by
+      apply Finset.sup_le
+      intro x hx
+      exact h x
+    omega
 
 end Decomposition
 
@@ -57,6 +83,90 @@ decomposition all of whose bags have size at most `k+1`.  Using `Fin t` as the
 node type loses no finite decompositions and keeps the existential first-order. -/
 def HasTreewidthAtMost (G : SimpleGraph V) (k : ℕ) : Prop :=
   ∃ t : ℕ, ∃ D : Decomposition G (Fin t), D.WidthAtMost k
+
+/-- Treewidth-at-most is monotone under taking spanning subgraphs.  This is
+the graph-theoretic reduction used before Proposition 5.1 in the paper: every
+Fourier support occurring inside a width-`k` plant also has treewidth at most
+`k`. -/
+theorem treewidth_mono_subgraph {G H : SimpleGraph V} {k : ℕ}
+    (hHG : H ≤ G) (hG : HasTreewidthAtMost G k) :
+    HasTreewidthAtMost H k := by
+  rcases hG with ⟨t, D, hwidth⟩
+  let D' : Decomposition H (Fin t) :=
+    { tree := D.tree
+      bag := D.bag
+      isTree := D.isTree
+      vertex_mem := D.vertex_mem
+      edge_mem := fun {_ _} huv ↦ D.edge_mem (hHG huv)
+      running_intersection := D.running_intersection }
+  exact ⟨t, D', hwidth⟩
+
+/-- Increasing the numerical width bound preserves a tree decomposition. -/
+theorem hasTreewidthAtMost_mono {G : SimpleGraph V} {k l : ℕ}
+    (hkl : k ≤ l) (hG : HasTreewidthAtMost G k) :
+    HasTreewidthAtMost G l := by
+  rcases hG with ⟨t, D, hwidth⟩
+  exact ⟨t, D, fun x ↦ le_trans (hwidth x) (Nat.add_le_add_right hkl 1)⟩
+
+/-- Every finite graph has a one-bag tree decomposition.  The deliberately
+loose bound `|V|` is enough to make the minimum defining `treewidth` total,
+including for empty vertex types. -/
+theorem hasTreewidthAtMost_card [Fintype V] (G : SimpleGraph V) :
+    HasTreewidthAtMost G (Fintype.card V) := by
+  classical
+  let D : Decomposition G (Fin 1) :=
+    { tree := ⊥
+      bag := fun _ ↦ Finset.univ
+      isTree := by
+        constructor
+        · rw [SimpleGraph.connected_bot_iff]
+          exact ⟨inferInstance, inferInstance⟩
+        · exact SimpleGraph.isAcyclic_bot
+      vertex_mem := fun v ↦ ⟨0, by simp⟩
+      edge_mem := fun {_ _} _ ↦ ⟨0, by simp⟩
+      running_intersection := by
+        intro v
+        have hset : {x : Fin 1 | v ∈ (Finset.univ : Finset V)} = Set.univ := by
+          ext x
+          simp
+        rw [hset]
+        apply (SimpleGraph.induceUnivIso (⊥ : SimpleGraph (Fin 1))).connected_iff.mpr
+        rw [SimpleGraph.connected_bot_iff]
+        exact ⟨inferInstance, inferInstance⟩ }
+  refine ⟨1, D, ?_⟩
+  intro x
+  simp [D]
+
+/-- **Paper Definition 5.2.**  The treewidth of a finite simple graph is the
+least `k` for which it has a tree decomposition with bags of size at most
+`k+1`.  The same definition works for connected and disconnected graphs. -/
+noncomputable def treewidth [Fintype V] (G : SimpleGraph V) : ℕ :=
+  Nat.find ⟨Fintype.card V, hasTreewidthAtMost_card G⟩
+
+/-- A graph admits a decomposition at its treewidth. -/
+theorem hasTreewidthAtMost_treewidth [Fintype V] (G : SimpleGraph V) :
+    HasTreewidthAtMost G (treewidth G) :=
+  Nat.find_spec ⟨Fintype.card V, hasTreewidthAtMost_card G⟩
+
+/-- Minimality of `treewidth`. -/
+theorem treewidth_le_of_hasTreewidthAtMost [Fintype V]
+    {G : SimpleGraph V} {k : ℕ} (hG : HasTreewidthAtMost G k) :
+    treewidth G ≤ k :=
+  Nat.find_min' ⟨Fintype.card V, hasTreewidthAtMost_card G⟩ hG
+
+/-- Characterization of the numerical treewidth by an explicit width bound. -/
+theorem treewidth_le_iff [Fintype V] {G : SimpleGraph V} {k : ℕ} :
+    treewidth G ≤ k ↔ HasTreewidthAtMost G k := by
+  constructor
+  · intro h
+    exact hasTreewidthAtMost_mono h (hasTreewidthAtMost_treewidth G)
+  · exact treewidth_le_of_hasTreewidthAtMost
+
+/-- Numerical treewidth is monotone under spanning subgraphs. -/
+theorem treewidth_mono [Fintype V] {G H : SimpleGraph V} (hHG : H ≤ G) :
+    treewidth H ≤ treewidth G :=
+  treewidth_le_of_hasTreewidthAtMost
+    (treewidth_mono_subgraph hHG (hasTreewidthAtMost_treewidth G))
 
 /-- A faithful ordered edge decomposition.  The pieces need not be connected.
 They are nonempty, lie below `G`, are pairwise edge-disjoint, and cover every

@@ -1,4 +1,6 @@
 import LowDegree.Asymptotics.Basic
+import LowDegree.Probability.BernoulliCount
+import LowDegree.Probability.Convergence
 import LowDegree.Probability.Finite
 
 /-!
@@ -37,6 +39,55 @@ theorem truncatedPlant_edgeDensity_core
   have hfun : truncated = fun n ↦ original n - removed n := funext hidentity
   rw [hfun]
   simpa only [sub_zero] using hsub
+
+/-- Probability-correct endgame for paper Lemma A.3.  Once the concrete
+random-graph calculation shows that the original edge density converges and
+the removed density vanishes in probability, the truncated density has the
+same limit. -/
+theorem truncatedPlant_edgeDensity_tendstoInProbability
+    {Ω : ℕ → Type*} [∀ n, Fintype (Ω n)]
+    (law : ∀ n, FiniteLaw (Ω n))
+    (original removed truncated : ∀ n, Ω n → ℝ) (density : ℝ)
+    (hidentity : ∀ n ω, truncated n ω = original n ω - removed n ω)
+    (horiginal : TendstoInProbability law original density)
+    (hremoved : TendstoInProbability law removed 0) :
+    TendstoInProbability law truncated density := by
+  have hsub := horiginal.sub hremoved
+  intro δ hδ
+  simpa only [hidentity, sub_zero] using hsub δ hδ
+
+/-- Concrete probabilistic endgame of paper Lemma A.3 for the sparse
+Erdős--Rényi plant.  The original edge-density convergence is discharged by
+the exact Bernoulli calculation; the remaining two inputs are precisely the
+cycle-pruning estimate and the rare local-sparsity truncation estimate. -/
+theorem sparseErdosRenyi_pruning_edgeDensity
+    (lam : ℝ) (hlam : 0 < lam) (m : ℕ → ℕ)
+    (hm : Tendsto m atTop atTop)
+    (removed pruned truncated :
+      ∀ n, BooleanConfiguration (AmbientEdge (m n)) → ℝ)
+    (hpruned : ∀ n x,
+      pruned n x = bernoulliCountReal x / (m n : ℝ) - removed n x)
+    (hremoved : TendstoInProbability
+      (fun n ↦ erdosRenyiLaw (n := m n)
+        (sparseBernoulliParameter lam (m n))) removed 0)
+    (htruncation : Vanishes (fun n ↦
+      (erdosRenyiLaw (n := m n) (sparseBernoulliParameter lam (m n))).prob
+        (FiniteLaw.event fun x ↦ pruned n x ≠ truncated n x))) :
+    TendstoInProbability
+      (fun n ↦ erdosRenyiLaw (n := m n)
+        (sparseBernoulliParameter lam (m n)))
+      truncated (lam / 2) := by
+  let law : ∀ n, FiniteLaw (BooleanConfiguration (AmbientEdge (m n))) :=
+    fun n ↦ erdosRenyiLaw (n := m n)
+      (sparseBernoulliParameter lam (m n))
+  let original : ∀ n, BooleanConfiguration (AmbientEdge (m n)) → ℝ :=
+    fun n x ↦ bernoulliCountReal x / (m n : ℝ)
+  have horiginal : TendstoInProbability law original (lam / 2) := by
+    exact sparseErdosRenyi_edgeDensity_tendstoInProbability lam hlam m hm
+  have hprunedLimit : TendstoInProbability law pruned (lam / 2) :=
+    truncatedPlant_edgeDensity_tendstoInProbability law original removed pruned
+      (lam / 2) hpruned horiginal hremoved
+  exact hprunedLimit.congr_of_ne_vanishes htruncation
 
 /-- Error probabilities for a separating scan test. -/
 structure TestSeparationCertificate where
