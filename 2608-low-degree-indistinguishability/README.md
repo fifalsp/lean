@@ -27,29 +27,36 @@ threshold `c₀`. The repository uses no `sorry`, `admit`, or project axiom. See
 
 ## Main formal theorem
 
-`LowDegree.main_lowDegree_to_noisedL2_and_tv` proves the following implication.
-For a positive background density, a sequence of plants on at most `n`
-vertices, positive degree cutoffs `Dₙ`, and treewidth upper bounds `kₙ`,
+The theorem
+[`main_lowDegree_to_noisedL2_and_tv`](LowDegree/BoundedTreewidthTheorem.lean)
+proves the following implication. Consider a positive background density, a
+sequence of plants on at most $n$ vertices, positive degree cutoffs $D_n$, and
+treewidth upper bounds $k_n$. Assume
 
 $$
-(k_n+1)\log n=o(D_n)
-\qquad\text{and}\qquad
-\left\lVert L_n^{\le D_n}\right\rVert_{L^2(Q_n)}^2=1+o(1)
+\begin{aligned}
+(k_n+1)\log n
+  &= o(D_n), \\[4pt]
+\left\lVert L_n^{\le D_n}\right\rVert_{L^2(Q_n)}^2
+  &= 1+o(1).
+\end{aligned}
 $$
 
-imply, for every fixed noise rate $\varepsilon\in(0,1)$,
+Then, for every fixed noise rate $\varepsilon\in(0,1)$,
 
 $$
-\left\lVert L_{n,\varepsilon}\right\rVert_{L^2(Q_n)}^2=1+o(1)
-\qquad\text{and}\qquad
-d_{\mathrm{TV}}\!\left(T_\varepsilon P_n,Q_n\right)=o(1).
+\begin{aligned}
+\left\lVert L_{n,\varepsilon}\right\rVert_{L^2(Q_n)}^2
+  &= 1+o(1), \\[4pt]
+d_{\mathrm{TV}}\!\left(T_\varepsilon P_n,Q_n\right)
+  &= o(1).
+\end{aligned}
 $$
 
 The norm and TV sequences are definitionally constructed from the concrete
-finite laws.
-`LowDegree.BoundedTreewidthPlantModel.main_lowDegree_to_noisedL2_and_tv_statement_proved`
-also proves the original proposition-valued statement retained in
-`LowDegree/Main.lean`.
+finite laws. A
+[`model-facing wrapper`](LowDegree/Main.lean)
+also proves the original proposition-valued statement from the manuscript.
 
 ## Build
 
