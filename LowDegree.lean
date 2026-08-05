@@ -18,6 +18,14 @@ import LowDegree.Main
 import LowDegree.Subcritical
 import LowDegree.Supercritical
 import LowDegree.SupercriticalPruning
+import LowDegree.SupercriticalStatistical
+import LowDegree.SupercriticalCanonicalScales
+import LowDegree.Asymptotics.ForestComponentExpansion
+import LowDegree.Asymptotics.ForestLargeConnectedBetaMass
+import LowDegree.Asymptotics.LargeConnectedBetaMass
+import LowDegree.BoundedTreewidthTheorem
+import LowDegree.Combinatorics.GraphComponentExpansion
+import LowDegree.Combinatorics.TreewidthAcyclic
 
 /-!
 # Low-degree indistinguishability

@@ -1,4 +1,4 @@
-import LowDegree.Combinatorics.TreeDecomposition
+import LowDegree.Combinatorics.BoundedOverlapDivision
 import LowDegree.Combinatorics.WeightedTreePartitionAdapter
 
 /-!
@@ -169,6 +169,21 @@ theorem hasTreewidthAtMost_one_of_connected_isAcyclic
     (hconn : G.Connected) (hacyclic : G.IsAcyclic) :
     HasTreewidthAtMost G 1 :=
   hasTreewidthAtMost_one_of_isTree ⟨hconn, hacyclic⟩
+
+/-- Every connected acyclic graph with at least `l > 0` edges has the
+paper's block decomposition with overlap at most `2(m-1)`.  This is the
+width-one specialization used for forest-supported Fourier mass. -/
+theorem connectedAcyclic_exists_boundedOverlap_orderedEdgeDecomposition
+    {l : ℕ} (hconn : G.Connected) (hacyclic : G.IsAcyclic)
+    (hl : 0 < l) (htotal : l ≤ G.edgeFinset.card) :
+    ∃ m : ℕ, ∃ P : OrderedEdgeDecomposition G m,
+      (∀ i : Fin m,
+        l ≤ (P.piece i).edgeFinset.card ∧
+          (P.piece i).edgeFinset.card ≤ 3 * l) ∧
+      P.overlap ≤ 2 * (m - 1) := by
+  simpa using exists_boundedOverlap_orderedEdgeDecomposition
+    (hasTreewidthAtMost_one_of_connected_isAcyclic hconn hacyclic)
+    hl htotal
 
 end
 
