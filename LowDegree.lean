@@ -1,4 +1,5 @@
 import LowDegree.Fourier
+import LowDegree.LowDegreeAdvantage
 import LowDegree.PlantedModel
 import LowDegree.DeletedPlant
 import LowDegree.RandomPlant
@@ -11,6 +12,7 @@ import LowDegree.Combinatorics.WeightedTransport
 import LowDegree.Combinatorics.TreeDecomposition
 import LowDegree.Combinatorics.WeightedTreePartition
 import LowDegree.Combinatorics.WeightedTreePartitionAdapter
+import LowDegree.Combinatorics.WeightedTreePartitionTheorem
 import LowDegree.Asymptotics.LeadingTerm
 import LowDegree.Asymptotics.ModelConsequences
 import LowDegree.Asymptotics.NoShortCycles
@@ -20,6 +22,7 @@ import LowDegree.Supercritical
 import LowDegree.SupercriticalPruning
 import LowDegree.SupercriticalStatistical
 import LowDegree.SupercriticalCanonicalScales
+import LowDegree.SupercriticalGapTheorem
 import LowDegree.Asymptotics.ForestComponentExpansion
 import LowDegree.Asymptotics.ForestLargeConnectedBetaMass
 import LowDegree.Asymptotics.LargeConnectedBetaMass

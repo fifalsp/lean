@@ -6,34 +6,26 @@ Chen and Shuangping Li.
 
 ## Current scope
 
-The project formalizes reusable proof kernels for finite Bernoulli Fourier
-analysis, total variation and second moments, concrete graph-copy and
-isomorphism-triple counting, tree-decomposition bookkeeping, and the paper's
-asymptotic arguments. It also
-contains an exact Lean proposition for the bounded-treewidth low-degree
-consequence, including the pointwise quantifier “for every fixed
-`ε ∈ (0,1)`.”
+The project formalizes finite Bernoulli Fourier analysis, total variation and
+second moments, concrete graph-copy and isomorphism-class counting,
+tree-decomposition and bounded-overlap bookkeeping, forest truncation, and the
+paper's asymptotic arguments. All eighteen numbered statements in the paper
+have concrete Lean proofs: Theorems 1.1, 1.2, and A.1; Lemmas 3.1--5.4 and
+A.2--A.3; Proposition 5.1; and Definition 5.2.
 
-This is not yet a complete verification of the paper's main theorem. The
-finite Erdős--Rényi, planted, deleted, and noised laws and their genuine
-likelihood ratios are now formalized, including the exact identity between
-deletion before superposition and resampling afterward. Paper Lemmas 3.1,
-3.2, 3.3, 4.1, and 4.2 and Definition 5.2 have concrete proofs. Equation
-(4.4), the intrinsic weighted subcubic-tree partition core of Lemma 5.4, its
-arbitrary-tree rooting adapter, and the short-cycle pruning estimate in Lemma
-A.3 are also verified. The remaining main gaps are the classwise Fourier
-regrouping and aggregate restriction arguments, the label-preserving cluster
-quotient, and existence of the required edge-owned bounded-overlap
-decomposition. The repository deliberately uses no `sorry`, `admit`, or
-project axiom to hide those gaps. See
+Appendix Theorem A.1 is proved for the actual twice-truncated, uniformly
+injected random plant. Its proof includes the exact Parseval expansion (A.5),
+the injection/containment estimate (A.6), the support restrictions (A.7)--(A.8),
+the finite enumeration bound (A.9), and the analytic estimates (A.10)--(A.12),
+then packages the low-degree and total-variation conclusions under one
+threshold `c₀`. The repository uses no `sorry`, `admit`, or project axiom. See
 [`docs/PAPER_MAP.md`](docs/PAPER_MAP.md) for the statement-by-statement audit.
 
-## Main formal statement
+## Main formal theorem
 
-`LowDegree.main_lowDegree_to_noisedL2_and_tv_statement` encodes the following
-logical implication. For a positive background density, a sequence of plants
-on at most `n` vertices, positive degree cutoffs `Dₙ`, and treewidth upper
-bounds `kₙ`,
+`LowDegree.main_lowDegree_to_noisedL2_and_tv` proves the following implication.
+For a positive background density, a sequence of plants on at most `n`
+vertices, positive degree cutoffs `Dₙ`, and treewidth upper bounds `kₙ`,
 
 ```text
 (kₙ + 1) log n = o(Dₙ)
@@ -47,11 +39,11 @@ imply, for every fixed noise rate `ε ∈ (0,1)`,
 and TV(Tε Pₙ, Qₙ) = o(1).
 ```
 
-The declaration is a proposition marked as proof-pending, not an axiom. Its
-norm and TV sequences are definitionally constructed from the concrete finite
-laws. The verified `SecondMomentCertificate.fixedNoiseConclusion_of_model`
-supplies the final `L² → TV` step once the noised second-moment estimate is
-established.
+The norm and TV sequences are definitionally constructed from the concrete
+finite laws.
+`LowDegree.BoundedTreewidthPlantModel.main_lowDegree_to_noisedL2_and_tv_statement_proved`
+also proves the original proposition-valued statement retained in
+`LowDegree/Main.lean`.
 
 ## Build
 
