@@ -36,7 +36,7 @@ treewidth upper bounds $k_n$. Assume
 $$
 \begin{aligned}
 (k_n+1)\log n
-  &= o(D_n), \\[4pt]
+  &= o(D_n), \\
 \left\lVert L_n^{\le D_n}\right\rVert_{L^2(Q_n)}^2
   &= 1+o(1).
 \end{aligned}
@@ -47,7 +47,7 @@ Then, for every fixed noise rate $\varepsilon\in(0,1)$,
 $$
 \begin{aligned}
 \left\lVert L_{n,\varepsilon}\right\rVert_{L^2(Q_n)}^2
-  &= 1+o(1), \\[4pt]
+  &= 1+o(1), \\
 d_{\mathrm{TV}}\!\left(T_\varepsilon P_n,Q_n\right)
   &= o(1).
 \end{aligned}
