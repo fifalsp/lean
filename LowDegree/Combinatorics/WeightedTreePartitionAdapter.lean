@@ -110,6 +110,81 @@ theorem parent_adj (hQ : Q.IsTree) (r x : X) (hx : x ≠ r) :
   exact (rootPath hQ r x).adj_penultimate
     (SimpleGraph.Walk.not_nil_of_ne (Ne.symm hx))
 
+/-! ### Exhaustion of the original tree edges -/
+
+/-- The unoriented edge from a non-root vertex to its parent. -/
+def orientedEdge (hQ : Q.IsTree) (r x : X) : Sym2 X :=
+  s(parent hQ r x, x)
+
+omit [Fintype X] in
+/-- Different non-root vertices determine different parent edges. -/
+theorem orientedEdge_injOn (hQ : Q.IsTree) (r : X) :
+    Set.InjOn (orientedEdge hQ r) {x | x ≠ r} := by
+  intro x hx y hy hxy
+  rw [orientedEdge, orientedEdge, Sym2.eq_iff] at hxy
+  rcases hxy with hxy | hxy
+  · exact hxy.2
+  · have hxHeight := height_parent_add_one hQ r x hx
+    have hyHeight := height_parent_add_one hQ r y hy
+    rw [hxy.1] at hxHeight
+    rw [← hxy.2] at hyHeight
+    omega
+
+/-- The parent edges of all non-root vertices are exactly the edges of the
+original finite tree. -/
+theorem image_orientedEdge_eq_edgeFinset (hQ : Q.IsTree) (r : X) :
+    ((Finset.univ.erase r).image (orientedEdge hQ r)) = Q.edgeFinset := by
+  classical
+  have hsubset : ((Finset.univ.erase r).image (orientedEdge hQ r)) ⊆
+      Q.edgeFinset := by
+    intro e he
+    rw [Finset.mem_image] at he
+    obtain ⟨x, hx, rfl⟩ := he
+    rw [Finset.mem_erase] at hx
+    rw [SimpleGraph.mem_edgeFinset, orientedEdge,
+      SimpleGraph.mem_edgeSet]
+    exact parent_adj hQ r x hx.1
+  have himage : ((Finset.univ.erase r).image (orientedEdge hQ r)).card =
+      (Finset.univ.erase r).card := by
+    apply Finset.card_image_of_injOn
+    intro x hx y hy hxy
+    apply orientedEdge_injOn hQ r
+    · simpa using (Finset.mem_erase.mp hx).1
+    · simpa using (Finset.mem_erase.mp hy).1
+    · exact hxy
+  have hrmem : r ∈ (Finset.univ : Finset X) := Finset.mem_univ r
+  have herase : (Finset.univ.erase r).card = Fintype.card X - 1 := by
+    rw [Finset.card_erase_of_mem hrmem, Finset.card_univ]
+  have htreeCard := hQ.card_edgeFinset
+  apply Finset.eq_of_subset_of_card_le hsubset
+  rw [himage, herase]
+  omega
+
+/-- Original adjacency is exactly the parent-child relation in the rooted
+orientation. -/
+theorem adj_iff_parent (hQ : Q.IsTree) (r x y : X) :
+    Q.Adj x y ↔
+      (y ≠ r ∧ parent hQ r y = x) ∨
+        (x ≠ r ∧ parent hQ r x = y) := by
+  constructor
+  · intro hxy
+    have hedge : s(x, y) ∈ Q.edgeFinset := by
+      rw [SimpleGraph.mem_edgeFinset, SimpleGraph.mem_edgeSet]
+      exact hxy
+    rw [← image_orientedEdge_eq_edgeFinset hQ r,
+      Finset.mem_image] at hedge
+    obtain ⟨z, hz, heq⟩ := hedge
+    have hzroot : z ≠ r := (Finset.mem_erase.mp hz).1
+    rw [orientedEdge, Sym2.eq_iff] at heq
+    rcases heq with heq | heq
+    · rcases heq with ⟨hparent, rfl⟩
+      exact Or.inl ⟨hzroot, hparent⟩
+    · rcases heq with ⟨hparent, rfl⟩
+      exact Or.inr ⟨hzroot, hparent⟩
+  · rintro (h | h)
+    · simpa [h.2] using parent_adj hQ r y h.1
+    · simpa [h.2] using (parent_adj hQ r x h.1).symm
+
 /-- Children in the orientation away from the root. -/
 def children (hQ : Q.IsTree) (r x : X) : Finset X :=
   Finset.univ.filter fun y ↦ y ≠ r ∧ parent hQ r y = x
@@ -181,7 +256,7 @@ vertex type is finite. -/
 def farther (hQ : Q.IsTree) (r : X) (y x : X) : Prop :=
   height hQ r x < height hQ r y
 
-private theorem farther_wellFounded (hQ : Q.IsTree) (r : X) :
+theorem farther_wellFounded (hQ : Q.IsTree) (r : X) :
     WellFounded (farther hQ r) := by
   letI : IsTrans X (farther hQ r) :=
     ⟨by
@@ -347,6 +422,98 @@ theorem mem_vertices_labeledTree_root (hQ : Q.IsTree) (r y : X) :
     rw [labeledTree_eq]
     rfl
   rwa [hroot] at hm
+
+/-! ### Uniqueness of the retained labels -/
+
+/-- `z` is below `x` in the orientation away from `r`, expressed using the
+iterated parent map.  The numerical component makes the iteration count
+canonical. -/
+def IsDescendant (hQ : Q.IsTree) (r x z : X) : Prop :=
+  ∃ n : ℕ,
+    height hQ r z = height hQ r x + n ∧
+      (parent hQ r)^[n] z = x
+
+/-- Every label occurring in the subtree rooted at `x` is an oriented
+descendant of `x`. -/
+theorem isDescendant_of_mem_vertices_labeledTree (hQ : Q.IsTree) (r x z : X)
+    (hz : z ∈ vertices (labeledTree hQ r x)) :
+    IsDescendant hQ r x z := by
+  induction x using (farther_wellFounded hQ r).induction with
+  | h x ih =>
+      rw [labeledTree_eq, vertices] at hz
+      simp only [List.mem_cons] at hz
+      rcases hz with rfl | hz
+      · exact ⟨0, by simp, by simp⟩
+      · rw [List.mem_flatten] at hz
+        obtain ⟨labels, hlabels, hz⟩ := hz
+        rw [List.mem_map] at hlabels
+        obtain ⟨subtree, hsubtree, rfl⟩ := hlabels
+        rw [List.mem_map] at hsubtree
+        obtain ⟨y, _hy, rfl⟩ := hsubtree
+        have hyFarther : farther hQ r y.val x := by
+          change height hQ r x < height hQ r y.val
+          exact height_lt_of_mem_children hQ r x y.val y.property
+        obtain ⟨n, hheight, hiterate⟩ := ih y.val hyFarther hz
+        have hyChild : y.val ≠ r ∧ parent hQ r y.val = x :=
+          (mem_children_iff hQ r x y.val).mp y.property
+        refine ⟨n + 1, ?_, ?_⟩
+        · have hyHeight := height_parent_add_one hQ r y.val hyChild.1
+          rw [hyChild.2] at hyHeight
+          omega
+        · rw [show n + 1 = n.succ by omega, Function.iterate_succ_apply']
+          rw [hiterate, hyChild.2]
+
+/-- The rooted encoding visits every original vertex exactly once. -/
+theorem vertices_labeledTree_nodup (hQ : Q.IsTree) (r x : X) :
+    (vertices (labeledTree hQ r x)).Nodup := by
+  induction x using (farther_wellFounded hQ r).induction with
+  | h x ih =>
+      rw [labeledTree_eq, vertices, List.nodup_cons]
+      constructor
+      · intro hx
+        rw [List.mem_flatten] at hx
+        obtain ⟨labels, hlabels, hx⟩ := hx
+        rw [List.mem_map] at hlabels
+        obtain ⟨subtree, hsubtree, rfl⟩ := hlabels
+        rw [List.mem_map] at hsubtree
+        obtain ⟨y, _hy, rfl⟩ := hsubtree
+        obtain ⟨n, hheight, _hiterate⟩ :=
+          isDescendant_of_mem_vertices_labeledTree hQ r y.val x hx
+        have hyChild : y.val ≠ r ∧ parent hQ r y.val = x :=
+          (mem_children_iff hQ r x y.val).mp y.property
+        have hyHeight := height_parent_add_one hQ r y.val hyChild.1
+        rw [hyChild.2] at hyHeight
+        omega
+      · rw [List.nodup_flatten]
+        constructor
+        · intro labels hlabels
+          rw [List.mem_map] at hlabels
+          obtain ⟨subtree, hsubtree, rfl⟩ := hlabels
+          rw [List.mem_map] at hsubtree
+          obtain ⟨y, _hy, rfl⟩ := hsubtree
+          apply ih y.val
+          change height hQ r x < height hQ r y.val
+          exact height_lt_of_mem_children hQ r x y.val y.property
+        · rw [List.pairwise_map, List.pairwise_map]
+          apply (children hQ r x).attach.nodup_toList.pairwise_of_forall_ne
+          intro y _hy z _hz hyz
+          rw [List.disjoint_left]
+          intro a hay haz
+          obtain ⟨ny, hheighty, hitery⟩ :=
+            isDescendant_of_mem_vertices_labeledTree hQ r y.val a hay
+          obtain ⟨nz, hheightz, hiterz⟩ :=
+            isDescendant_of_mem_vertices_labeledTree hQ r z.val a haz
+          have hyChild : y.val ≠ r ∧ parent hQ r y.val = x :=
+            (mem_children_iff hQ r x y.val).mp y.property
+          have hzChild : z.val ≠ r ∧ parent hQ r z.val = x :=
+            (mem_children_iff hQ r x z.val).mp z.property
+          have hyHeight := height_parent_add_one hQ r y.val hyChild.1
+          have hzHeight := height_parent_add_one hQ r z.val hzChild.1
+          rw [hyChild.2] at hyHeight
+          rw [hzChild.2] at hzHeight
+          have hn : ny = nz := by omega
+          subst nz
+          exact hyz (Subtype.ext (hitery.symm.trans hiterz))
 
 /-! ### Numerical faithfulness -/
 
