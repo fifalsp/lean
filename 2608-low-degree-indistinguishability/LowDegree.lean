@@ -50,7 +50,8 @@ import LowDegree.DeterministicModelBridge
 import LowDegree.DeterministicGapTheorem
 
 /-!
-# Rigorous Consequences of Low Degree for Planted Graphs
+# Rigorous Low-Degree Implications for Planted Subgraph Detection: Noise and Treewidth
 
-Machine-checked companion to *Rigorous Consequences of Low Degree for Planted Graphs*.
+Machine-checked companion to *Rigorous Low-Degree Implications for Planted Subgraph Detection:
+Noise and Treewidth*.
 -/

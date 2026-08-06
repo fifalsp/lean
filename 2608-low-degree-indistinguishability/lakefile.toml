@@ -1,6 +1,6 @@
 name = "low_degree_indistinguishability"
 version = "0.1.0"
-description = "Lean verification companion to Rigorous Consequences of Low Degree for Planted Graphs"
+description = "Lean verification companion to Rigorous Low-Degree Implications for Planted Subgraph Detection: Noise and Treewidth"
 license = "Apache-2.0"
 defaultTargets = ["LowDegree"]
 

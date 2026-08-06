@@ -1,11 +1,11 @@
 # Paper-to-Lean map
 
 This file is the traceability index for the machine-checked companion to
-*Rigorous Consequences of Low Degree for Planted Graphs*.
+*Rigorous Low-Degree Implications for Planted Subgraph Detection: Noise and Treewidth*.
 
 ## Source snapshot
 
-- Source title: *Rigorous Consequences of Low Degree for Planted Graphs*
+- Source title: *Rigorous Low-Degree Implications for Planted Subgraph Detection: Noise and Treewidth*
 - Authors in source: Xuan Chen and Shuangping Li
 - Current title verified in live Overleaf `arxiv.tex` on 2026-08-06
 - The statement map below was audited against the earlier full-source snapshot with SHA-256 `0388eec946d9ce098bbf0a1c1ea641c2e8dee78702e1844a8a075bbe64db1b30`

@@ -1,4 +1,4 @@
-# Rigorous Consequences of Low Degree for Planted Graphs
+# Rigorous Low-Degree Implications for Planted Subgraph Detection: Noise and Treewidth
 
 Lean formalization of the paper by Xuan Chen and Shuangping Li.
 
