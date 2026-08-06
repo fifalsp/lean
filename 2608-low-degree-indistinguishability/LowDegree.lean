@@ -50,8 +50,7 @@ import LowDegree.DeterministicModelBridge
 import LowDegree.DeterministicGapTheorem
 
 /-!
-# Low-degree indistinguishability
+# Rigorous Consequences of Low Degree for Planted Graphs
 
-Machine-checked companion to *From Low Degree to Statistical
-Indistinguishability for Bounded-Treewidth Planted Graphs*.
+Machine-checked companion to *Rigorous Consequences of Low Degree for Planted Graphs*.
 -/

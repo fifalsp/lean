@@ -1,18 +1,18 @@
 # Paper-to-Lean map
 
 This file is the traceability index for the machine-checked companion to
-*From Low Degree to Statistical Indistinguishability for Bounded-Treewidth Planted Graphs*.
+*Rigorous Consequences of Low Degree for Planted Graphs*.
 
 ## Source snapshot
 
-- Source title: *From Low Degree to Statistical Indistinguishability for Bounded-Treewidth Planted Graphs*
+- Source title: *Rigorous Consequences of Low Degree for Planted Graphs*
 - Authors in source: Xuan Chen and Shuangping Li
-- Source: live Overleaf `arxiv.tex`, exported and audited on 2026-08-06
-- SHA-256: `0388eec946d9ce098bbf0a1c1ea641c2e8dee78702e1844a8a075bbe64db1b30`
-- Source length at this snapshot: 125,672 characters; 2,443 lines
+- Current title verified in live Overleaf `arxiv.tex` on 2026-08-06
+- The statement map below was audited against the earlier full-source snapshot with SHA-256 `0388eec946d9ce098bbf0a1c1ea641c2e8dee78702e1844a8a075bbe64db1b30`
+- Audited snapshot length: 125,672 characters; 2,443 lines
 - Numbering source: the 21 theorem-like environments in source order. Definition 5.2 is inferred from the shared theorem counter because it has no `\label`.
 
-If the TeX hash changes, audit the changed statements and identities before updating this map.
+If the theorem statements change, audit the changed declarations and identities before updating this map.
 
 ## Inventory and status conventions
 

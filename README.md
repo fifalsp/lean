@@ -8,7 +8,7 @@ own Lean and mathlib versions.
 
 | Started | Project | Status |
 | --- | --- | --- |
-| 2026-08 | [Low-degree indistinguishability](2608-low-degree-indistinguishability/) | Complete for audited paper snapshot (21/21 numbered statements) |
+| 2026-08 | [Rigorous Consequences of Low Degree for Planted Graphs](2608-low-degree-indistinguishability/) | Theorems 1.1, 1.2, and A.2 formalized in Lean |
 
 ## Repository convention
 
