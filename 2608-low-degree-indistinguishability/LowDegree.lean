@@ -1,0 +1,57 @@
+import LowDegree.Fourier
+import LowDegree.LowDegreeAdvantage
+import LowDegree.PlantedModel
+import LowDegree.DeletedPlant
+import LowDegree.RandomPlant
+import LowDegree.Probability.Convergence
+import LowDegree.Probability.Dirac
+import LowDegree.Probability.BernoulliCount
+import LowDegree.Probability.BernoulliEvents
+import LowDegree.Combinatorics.IsomorphismTriples
+import LowDegree.Combinatorics.GraphCopies
+import LowDegree.Combinatorics.WeightedTransport
+import LowDegree.Combinatorics.TreeDecomposition
+import LowDegree.Combinatorics.WeightedTreePartition
+import LowDegree.Combinatorics.WeightedTreePartitionAdapter
+import LowDegree.Combinatorics.WeightedTreePartitionTheorem
+import LowDegree.Asymptotics.LeadingTerm
+import LowDegree.Asymptotics.ModelConsequences
+import LowDegree.Asymptotics.NoShortCycles
+import LowDegree.Main
+import LowDegree.Subcritical
+import LowDegree.Supercritical
+import LowDegree.SupercriticalPruning
+import LowDegree.SupercriticalStatistical
+import LowDegree.SupercriticalCanonicalScales
+import LowDegree.SupercriticalGapTheorem
+import LowDegree.Asymptotics.ForestComponentExpansion
+import LowDegree.Asymptotics.ForestLargeConnectedBetaMass
+import LowDegree.Asymptotics.LargeConnectedBetaMass
+import LowDegree.BoundedTreewidthTheorem
+import LowDegree.Combinatorics.GraphComponentExpansion
+import LowDegree.Combinatorics.TreewidthAcyclic
+import LowDegree.Combinatorics.CutoffComponentExpansion
+import LowDegree.DeterministicConfigurationBase
+import LowDegree.DeterministicConfiguration
+import LowDegree.DeterministicConfigurationSelection
+import LowDegree.DeterministicConfigurationProbability
+import LowDegree.DeterministicConfigurationLocalSparsity
+import LowDegree.DeterministicConfigurationShortCycles
+import LowDegree.DeterministicConfigurationDefect
+import LowDegree.DeterministicConfigurationModelBridge
+import LowDegree.DeterministicConfigurationAsymptoticBridge
+import LowDegree.DeterministicConfigurationCutoffBridge
+import LowDegree.DeterministicConfigurationConstruction
+import LowDegree.DeterministicConnectedCount
+import LowDegree.DeterministicWitnessAdapters
+import LowDegree.DeterministicLowDegree
+import LowDegree.DeterministicStatistical
+import LowDegree.DeterministicModelBridge
+import LowDegree.DeterministicGapTheorem
+
+/-!
+# Rigorous Low-Degree Implications for Planted Subgraph Detection: Noise and Treewidth
+
+Machine-checked companion to *Rigorous Low-Degree Implications for Planted Subgraph Detection:
+Noise and Treewidth*.
+-/
