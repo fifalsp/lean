@@ -343,6 +343,132 @@ theorem class_eq_of_triple_source_subgraph_eq
     _ = ambientSupportClass rightFiber.1 := congrArg ambientSupportClass hfiber
     _ = D := rightFiber.2
 
+/-- A finite collection of distinct parent graph classes, each with a fixed
+ordered `m`-piece edge decomposition.  Unlike `FixedPieceClassDivision`
+below, this structure imposes no edge-count window on the pieces.  It is the
+data in the paper's aggregate restriction lemma. -/
+structure FixedPieceClassDecomposition (Parent : Type*) (n m : ℕ) where
+  classOf : Parent → AmbientSupportClass n
+  classOf_injective : Function.Injective classOf
+  decomposition : ∀ a : Parent,
+    OrderedEdgeDecomposition (classOf a).shape.graph m
+
+namespace FixedPieceClassDecomposition
+
+variable {Parent : Type*}
+    (D : FixedPieceClassDecomposition Parent n m)
+
+/-- The disjoint union of isomorphism triples over the parent collection. -/
+abbrev GlobalTriple (G : SimpleGraph (Fin n)) :=
+  Σ a : Parent, (D.classOf a).shape.IsomorphismTripleIn G
+
+/-- One tagged piece triple, with the tag recording its abstract piece type. -/
+abbrev PieceTriple (G : SimpleGraph (Fin n)) :=
+  Σ C : AmbientSupportClass n, C.shape.IsomorphismTripleIn G
+
+/-- The aggregate restriction map into ordered tuples of tagged piece
+triples.  The function type `Fin m → ...` is the finite ordered product in
+the displayed statement of the paper. -/
+noncomputable def encode (G : SimpleGraph (Fin n)) :
+    D.GlobalTriple G → Fin m → PieceTriple (n := n) G
+  | ⟨a, triple⟩, i =>
+      ⟨pieceClass (D.classOf a) (D.decomposition a) i,
+        FiniteGraphShape.reindexIsomorphismTriple
+          (pieceShapeIso (D.classOf a) (D.decomposition a) i)
+          ((D.classOf a).shape.restrictIsomorphismTriple G
+            (D.decomposition a) triple i)⟩
+
+/-- **Paper Lemma 4.3 (aggregate restriction injection).**
+
+For any finite collection of distinct parent graph types equipped with
+compatible ordered decompositions into the same number of pieces, the
+restriction maps combine to an injection into the disjoint union of ordered
+tuples of piece triples.  No block-size hypothesis is needed. -/
+theorem encode_injective (G : SimpleGraph (Fin n)) :
+    Function.Injective (D.encode G) := by
+  classical
+  rintro ⟨a, left⟩ ⟨b, right⟩ hencode
+  have hsourcePiece (i : Fin m) :
+      ((D.classOf a).shape.sourcePiece G (D.decomposition a) left i).1 =
+        ((D.classOf b).shape.sourcePiece G (D.decomposition b) right i).1 := by
+    have hi := congrFun hencode i
+    have hval := congrArg
+      (fun z : PieceTriple (n := n) G ↦ z.2.source.1) hi
+    exact hval
+  have htargetPiece (i : Fin m) :
+      ((D.classOf a).shape.targetPiece G (D.decomposition a) left i).1 =
+        ((D.classOf b).shape.targetPiece G (D.decomposition b) right i).1 := by
+    have hi := congrFun hencode i
+    have hval := congrArg
+      (fun z : PieceTriple (n := n) G ↦ z.2.target.1) hi
+    exact hval
+  have hgraphPiece (i : Fin m) :
+      FiniteGraphShape.ambientIsomorphismGraph
+          ((D.classOf a).shape.restrictIsomorphismTriple G
+            (D.decomposition a) left i) =
+        FiniteGraphShape.ambientIsomorphismGraph
+          ((D.classOf b).shape.restrictIsomorphismTriple G
+            (D.decomposition b) right i) := by
+    have hi := congrFun hencode i
+    have hval := congrArg
+      (fun z : PieceTriple (n := n) G ↦
+        FiniteGraphShape.ambientIsomorphismGraph z.2) hi
+    exact hval
+  have hsource : left.source.1 = right.source.1 := by
+    calc
+      left.source.1 =
+          ⨆ i, ((D.classOf a).shape.sourcePiece G
+            (D.decomposition a) left i).1 :=
+        ((D.classOf a).shape.iSup_sourcePieceEmbedding_toSubgraph G
+          (D.decomposition a) left).symm
+      _ = ⨆ i, ((D.classOf b).shape.sourcePiece G
+            (D.decomposition b) right i).1 := by
+        exact congrArg (⨆ i, · i) (funext hsourcePiece)
+      _ = right.source.1 :=
+        (D.classOf b).shape.iSup_sourcePieceEmbedding_toSubgraph G
+          (D.decomposition b) right
+  have hclass : D.classOf a = D.classOf b :=
+    class_eq_of_triple_source_subgraph_eq G left right hsource
+  have hab : a = b := D.classOf_injective hclass
+  subst b
+  have htarget : left.target.1 = right.target.1 := by
+    calc
+      left.target.1 =
+          ⨆ i, ((D.classOf a).shape.targetPiece G
+            (D.decomposition a) left i).1 :=
+        ((D.classOf a).shape.iSup_targetPieceEmbedding_toSubgraph G
+          (D.decomposition a) left).symm
+      _ = ⨆ i, ((D.classOf a).shape.targetPiece G
+            (D.decomposition a) right i).1 := by
+        exact congrArg (⨆ i, · i) (funext htargetPiece)
+      _ = right.target.1 :=
+        (D.classOf a).shape.iSup_targetPieceEmbedding_toSubgraph G
+          (D.decomposition a) right
+  have hgraph :
+      FiniteGraphShape.ambientIsomorphismGraph left =
+        FiniteGraphShape.ambientIsomorphismGraph right := by
+    calc
+      FiniteGraphShape.ambientIsomorphismGraph left =
+          ⋃ i, FiniteGraphShape.ambientIsomorphismGraph
+            ((D.classOf a).shape.restrictIsomorphismTriple G
+              (D.decomposition a) left i) :=
+        ((D.classOf a).shape.iUnion_ambientIsomorphismGraph_restrict G
+          (D.decomposition a) left).symm
+      _ = ⋃ i, FiniteGraphShape.ambientIsomorphismGraph
+            ((D.classOf a).shape.restrictIsomorphismTriple G
+              (D.decomposition a) right i) := by
+        exact congrArg (⋃ i, · i) (funext hgraphPiece)
+      _ = FiniteGraphShape.ambientIsomorphismGraph right :=
+        (D.classOf a).shape.iUnion_ambientIsomorphismGraph_restrict G
+          (D.decomposition a) right
+  have hsourceCopy : left.source = right.source := Subtype.ext hsource
+  have htargetCopy : left.target = right.target := Subtype.ext htarget
+  have htriple := FiniteGraphShape.isomorphismTriple_eq_of_source_target_ambientGraph
+    hsourceCopy htargetCopy hgraph
+  exact Sigma.ext rfl (by simpa using htriple)
+
+end FixedPieceClassDecomposition
+
 /-- Ambient support classes in the block range `[l,3l]`. -/
 abbrev BlockClass (n l : ℕ) :=
   {C : AmbientSupportClass n //
@@ -395,7 +521,8 @@ noncomputable def encode (G : SimpleGraph (Fin n)) :
           ((D.classOf a).shape.restrictIsomorphismTriple G
             (D.decomposition a) triple i)⟩
 
-/-- **Aggregate restriction injection (paper Lemma 4.5).**
+/-- Block-window specialization of the aggregate restriction injection used
+in the proof of paper Lemma 4.6.
 
 The tuple recovers the parent class from the union of the first-coordinate
 piece subgraphs.  Once that tag is recovered, the pointwise restriction

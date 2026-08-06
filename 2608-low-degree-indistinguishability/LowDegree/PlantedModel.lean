@@ -89,6 +89,12 @@ def permutedPlant {n : ℕ} (plant : SimpleGraph (Fin n))
     (σ : Equiv.Perm (Fin n)) : SimpleGraph (Fin n) :=
   plant.map σ.toEmbedding
 
+@[simp]
+theorem permutedPlant_bot {n : ℕ} (σ : Equiv.Perm (Fin n)) :
+    permutedPlant (⊥ : SimpleGraph (Fin n)) σ = ⊥ := by
+  ext u v
+  simp [permutedPlant, SimpleGraph.map_adj]
+
 /-- The edge coordinates forced by a permuted plant. -/
 noncomputable def permutedPlantEdges {n : ℕ}
     (plant : SimpleGraph (Fin n)) (σ : Equiv.Perm (Fin n)) :
@@ -105,6 +111,13 @@ theorem mem_permutedPlantEdges_iff {n : ℕ}
       (e : Sym2 (Fin n)) ∈ (permutedPlant plant σ).edgeSet := by
   classical
   simp [permutedPlantEdges]
+
+@[simp]
+theorem permutedPlantEdges_bot {n : ℕ} (σ : Equiv.Perm (Fin n)) :
+    permutedPlantEdges (⊥ : SimpleGraph (Fin n)) σ = ∅ := by
+  classical
+  ext e
+  simp
 
 /-- The positive mass of one permutation under the uniform distribution. -/
 noncomputable def uniformPermutationWeight (n : ℕ) : ℝ :=
@@ -130,6 +143,14 @@ noncomputable def plantedLikelihood {n : ℕ}
     (x : BooleanConfiguration (AmbientEdge n)) : ℝ :=
   ∑ σ : Equiv.Perm (Fin n),
     uniformPermutationWeight n * forcedLikelihood θ (permutedPlantEdges plant σ) x
+
+@[simp]
+theorem plantedLikelihood_bot {n : ℕ}
+    (θ : BernoulliParameter)
+    (x : BooleanConfiguration (AmbientEdge n)) :
+    plantedLikelihood θ (⊥ : SimpleGraph (Fin n)) x = 1 := by
+  classical
+  simp [plantedLikelihood, uniformPermutationWeight, forcedLikelihood]
 
 theorem forcedLikelihood_nonneg
     {E : Type*} [Fintype E] [DecidableEq E]
@@ -289,6 +310,19 @@ def noisedLikelihood {n : ℕ}
     BooleanConfiguration (AmbientEdge n) → ℝ :=
   edgeNoise θ (ε : ℝ) (plantedLikelihood θ plant)
 
+@[simp]
+theorem noisedLikelihood_bot {n : ℕ}
+    (θ : BernoulliParameter) (ε : NoiseRate)
+    (x : BooleanConfiguration (AmbientEdge n)) :
+    noisedLikelihood θ ε (⊥ : SimpleGraph (Fin n)) x = 1 := by
+  rw [noisedLikelihood]
+  have hlike : plantedLikelihood θ (⊥ : SimpleGraph (Fin n)) =
+      fun _ ↦ (1 : ℝ) := by
+    funext y
+    exact plantedLikelihood_bot θ y
+  rw [hlike]
+  exact edgeNoise_one θ (ε : ℝ) x
+
 theorem noisedLikelihood_nonneg {n : ℕ}
     (θ : BernoulliParameter) (ε : NoiseRate)
     (plant : SimpleGraph (Fin n))
@@ -419,8 +453,47 @@ noncomputable def plantedNoisedNormSq {n : ℕ}
 /-- Total variation between the concrete noised planted and null laws. -/
 noncomputable def plantedNoisedTotalVariation {n : ℕ}
     (θ : BernoulliParameter) (ε : NoiseRate)
-    (plant : SimpleGraph (Fin n)) : ℝ :=
+  (plant : SimpleGraph (Fin n)) : ℝ :=
   (noisedPlantedLaw θ ε plant).tv (erdosRenyiLaw θ)
+
+/-- An edgeless plant has the constant-one likelihood at every degree
+cutoff. -/
+@[simp]
+theorem plantedLowDegreeNormSq_bot {n : ℕ}
+    (θ : BernoulliParameter) (D : ℕ) :
+    plantedLowDegreeNormSq θ (⊥ : SimpleGraph (Fin n)) D = 1 := by
+  rw [plantedLowDegreeNormSq, plantedLowDegreeLikelihood,
+    lowDegreeProjection_norm_sq]
+  have hcoeff (S : Finset (AmbientEdge n)) :
+      fourierCoeff θ (fun _ : BooleanConfiguration (AmbientEdge n) ↦ (1 : ℝ)) S =
+        if S = ∅ then 1 else 0 := by
+    rw [show (fun _ : BooleanConfiguration (AmbientEdge n) ↦ (1 : ℝ)) =
+        forcedLikelihood θ ∅ by
+      funext x
+      simp [forcedLikelihood], fourierCoeff_forcedLikelihood]
+    by_cases hS : S = ∅ <;> simp [hS]
+  have hlike : plantedLikelihood θ (⊥ : SimpleGraph (Fin n)) =
+      fun _ ↦ (1 : ℝ) := by
+    funext x
+    exact plantedLikelihood_bot θ x
+  rw [hlike]
+  simp_rw [hcoeff]
+  simp
+
+/-- Edge noise leaves the null law unchanged, so an edgeless plant has
+noised second moment exactly one. -/
+@[simp]
+theorem plantedNoisedNormSq_bot {n : ℕ}
+    (θ : BernoulliParameter) (ε : NoiseRate) :
+    plantedNoisedNormSq θ ε (⊥ : SimpleGraph (Fin n)) = 1 := by
+  simp [plantedNoisedNormSq, bernoulliInner]
+
+/-- The noised law of an edgeless plant is exactly the null law. -/
+@[simp]
+theorem plantedNoisedTotalVariation_bot {n : ℕ}
+    (θ : BernoulliParameter) (ε : NoiseRate) :
+    plantedNoisedTotalVariation θ ε (⊥ : SimpleGraph (Fin n)) = 0 := by
+  simp [plantedNoisedTotalVariation, FiniteLaw.tv]
 
 /-- Exact labeled-support Parseval formula for the low-degree norm.  Regrouping
 this finite sum by graph isomorphism class yields paper Equation (3.5). -/

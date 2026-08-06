@@ -73,9 +73,9 @@ end BoundedTreewidthPlantModel
 This definition encodes the exact logical implication and quantifier order of
 the bounded-treewidth low-degree consequence.  Unlike the earlier scalar
 profile, all three observables are definitionally tied to the concrete planted
-and noised laws and their likelihood ratios.  It remains a `Prop`, not an axiom
-or a proved theorem: the graph-sum transfer and tree-decomposition existence
-proof are still required.
+and noised laws and their likelihood ratios.  It is declared as a `Prop` here
+to avoid an import cycle; `BoundedTreewidthTheorem.lean` proves it.  The revised
+paper-facing numerical-treewidth product-scale theorem is also proved there.
 -/
 def main_lowDegree_to_noisedL2_and_tv_statement
     (M : BoundedTreewidthPlantModel) : Prop :=

@@ -4,6 +4,7 @@ import LowDegree.PlantedModel
 import LowDegree.DeletedPlant
 import LowDegree.RandomPlant
 import LowDegree.Probability.Convergence
+import LowDegree.Probability.Dirac
 import LowDegree.Probability.BernoulliCount
 import LowDegree.Probability.BernoulliEvents
 import LowDegree.Combinatorics.IsomorphismTriples
@@ -29,6 +30,24 @@ import LowDegree.Asymptotics.LargeConnectedBetaMass
 import LowDegree.BoundedTreewidthTheorem
 import LowDegree.Combinatorics.GraphComponentExpansion
 import LowDegree.Combinatorics.TreewidthAcyclic
+import LowDegree.Combinatorics.CutoffComponentExpansion
+import LowDegree.DeterministicConfigurationBase
+import LowDegree.DeterministicConfiguration
+import LowDegree.DeterministicConfigurationSelection
+import LowDegree.DeterministicConfigurationProbability
+import LowDegree.DeterministicConfigurationLocalSparsity
+import LowDegree.DeterministicConfigurationShortCycles
+import LowDegree.DeterministicConfigurationDefect
+import LowDegree.DeterministicConfigurationModelBridge
+import LowDegree.DeterministicConfigurationAsymptoticBridge
+import LowDegree.DeterministicConfigurationCutoffBridge
+import LowDegree.DeterministicConfigurationConstruction
+import LowDegree.DeterministicConnectedCount
+import LowDegree.DeterministicWitnessAdapters
+import LowDegree.DeterministicLowDegree
+import LowDegree.DeterministicStatistical
+import LowDegree.DeterministicModelBridge
+import LowDegree.DeterministicGapTheorem
 
 /-!
 # Low-degree indistinguishability

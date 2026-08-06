@@ -8,7 +8,7 @@ own Lean and mathlib versions.
 
 | Started | Project | Status |
 | --- | --- | --- |
-| 2026-08 | [Low-degree indistinguishability](2608-low-degree-indistinguishability/) | Complete: all 18 numbered statements and the main variational identity are proved in Lean |
+| 2026-08 | [Low-degree indistinguishability](2608-low-degree-indistinguishability/) | Complete for audited paper snapshot (21/21 numbered statements) |
 
 ## Repository convention
 

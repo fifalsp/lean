@@ -44,6 +44,84 @@ def TreewidthDegreeScale (k D : ℕ → ℕ) : Prop :=
     (fun n ↦ ((k n : ℝ) + 1) * Real.log (n : ℝ))
     (fun n ↦ (D n : ℝ))
 
+/-- The product form of the manuscript's revised hypothesis
+`kₙ = o(Dₙ / log n)`, namely `kₙ log n = o(Dₙ)`.
+
+This differs from `TreewidthDegreeScale` only when `kₙ = 0`: the latter has
+an additional logarithmic term.  That distinction matters for edgeless
+plants, so the paper-facing theorem repairs the cutoff only on zero-width
+indices before applying the existing positive-width argument. -/
+def TreewidthProductDegreeScale (k D : ℕ → ℕ) : Prop :=
+  LittleO
+    (fun n ↦ (k n : ℝ) * Real.log (n : ℝ))
+    (fun n ↦ (D n : ℝ))
+
+/-- Increase the cutoff on exactly the zero-width indices.  There the plant
+is edgeless, so changing its low-degree cutoff changes none of the likelihood
+quantities; choosing `n+1` supplies the missing logarithmic scale. -/
+def zeroWidthRepairedDegreeCutoff (k D : ℕ → ℕ) (n : ℕ) : ℕ :=
+  if k n = 0 then n + 1 else D n
+
+theorem zeroWidthRepairedDegreeCutoff_pos {k D : ℕ → ℕ}
+    (hD : ∀ n, 0 < D n) (n : ℕ) :
+    0 < zeroWidthRepairedDegreeCutoff k D n := by
+  by_cases hk : k n = 0
+  · simp [zeroWidthRepairedDegreeCutoff, hk]
+  · simp [zeroWidthRepairedDegreeCutoff, hk, hD n]
+
+/-- The product scale becomes the original `(kₙ+1) log n` scale after the
+zero-width cutoff repair. -/
+theorem TreewidthProductDegreeScale.repaired {k D : ℕ → ℕ}
+    (h : TreewidthProductDegreeScale k D) :
+    TreewidthDegreeScale k (zeroWidthRepairedDegreeCutoff k D) := by
+  have hlogNat :
+      (fun n : ℕ ↦ Real.log (n : ℝ)) =o[atTop]
+        (fun n : ℕ ↦ (n : ℝ)) := by
+    simpa only [Function.comp_apply, id_eq] using
+      Real.isLittleO_log_id_atTop.comp_tendsto
+        tendsto_natCast_atTop_atTop
+  have hnatSucc :
+      (fun n : ℕ ↦ (n : ℝ)) =O[atTop]
+        (fun n : ℕ ↦ ((n + 1 : ℕ) : ℝ)) := by
+    apply Filter.Eventually.isBigO
+    exact Filter.Eventually.of_forall fun n ↦ by
+      rw [Real.norm_eq_abs, abs_of_nonneg (Nat.cast_nonneg n)]
+      exact_mod_cast Nat.le_succ n
+  have hlogSucc :
+      (fun n : ℕ ↦ Real.log (n : ℝ)) =o[atTop]
+        (fun n : ℕ ↦ ((n + 1 : ℕ) : ℝ)) :=
+    hlogNat.trans_isBigO hnatSucc
+  rw [TreewidthDegreeScale, LittleO, isLittleO_iff]
+  intro ε hε
+  have hprodBound :=
+    isLittleO_iff.mp (show
+      (fun n ↦ (k n : ℝ) * Real.log (n : ℝ)) =o[atTop]
+        (fun n ↦ (D n : ℝ)) from h) (half_pos hε)
+  have hlogBound := isLittleO_iff.mp hlogSucc (half_pos hε)
+  filter_upwards [hprodBound, hlogBound] with n hprodN hlogN
+  by_cases hk : k n = 0
+  · have hlogNonneg : 0 ≤ Real.log (n : ℝ) := Real.log_natCast_nonneg n
+    have hsuccNonneg : 0 ≤ ((n + 1 : ℕ) : ℝ) := Nat.cast_nonneg _
+    simp only [zeroWidthRepairedDegreeCutoff, hk, if_pos, Nat.cast_zero,
+      zero_add, one_mul]
+    rw [Real.norm_eq_abs, abs_of_nonneg hlogNonneg,
+      Real.norm_eq_abs, abs_of_nonneg hsuccNonneg] at hlogN ⊢
+    nlinarith
+  · have hkOneNat : 1 ≤ k n := Nat.one_le_iff_ne_zero.mpr hk
+    have hkOne : (1 : ℝ) ≤ (k n : ℝ) := by exact_mod_cast hkOneNat
+    have hlogNonneg : 0 ≤ Real.log (n : ℝ) := Real.log_natCast_nonneg n
+    have hprodNonneg : 0 ≤ (k n : ℝ) * Real.log (n : ℝ) :=
+      mul_nonneg (Nat.cast_nonneg _) hlogNonneg
+    have hsumNonneg :
+        0 ≤ ((k n : ℝ) + 1) * Real.log (n : ℝ) :=
+      mul_nonneg (by positivity) hlogNonneg
+    rw [Real.norm_eq_abs, abs_of_nonneg hprodNonneg,
+      Real.norm_eq_abs, abs_of_nonneg (Nat.cast_nonneg (D n))] at hprodN
+    rw [zeroWidthRepairedDegreeCutoff, if_neg hk,
+      Real.norm_eq_abs, abs_of_nonneg hsumNonneg,
+      Real.norm_eq_abs, abs_of_nonneg (Nat.cast_nonneg (D n))]
+    nlinarith
+
 theorem vanishes_iff_tendsto {x : ℕ → ℝ} :
     Vanishes x ↔ Tendsto x atTop (𝓝 0) := Iff.rfl
 

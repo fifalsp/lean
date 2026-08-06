@@ -108,6 +108,28 @@ theorem hasTreewidthAtMost_mono {G : SimpleGraph V} {k l : ℕ}
   rcases hG with ⟨t, D, hwidth⟩
   exact ⟨t, D, fun x ↦ le_trans (hwidth x) (Nat.add_le_add_right hkl 1)⟩
 
+/-- A graph of treewidth at most zero has no edges.  This isolates the only
+case in which the revised product scale `tw(G) log n = o(Dₙ)` does not itself
+imply the old `(tw(G)+1) log n = o(Dₙ)` scale. -/
+theorem eq_bot_of_hasTreewidthAtMost_zero {G : SimpleGraph V}
+    (hG : HasTreewidthAtMost G 0) : G = ⊥ := by
+  classical
+  rcases hG with ⟨t, D, hwidth⟩
+  ext u v
+  simp only [SimpleGraph.bot_adj, iff_false]
+  intro huv
+  rcases D.edge_mem huv with ⟨x, hux, hvx⟩
+  have hsubset : ({u, v} : Finset V) ⊆ D.bag x := by
+    intro w hw
+    simp only [Finset.mem_insert, Finset.mem_singleton] at hw
+    rcases hw with rfl | rfl
+    · exact hux
+    · exact hvx
+  have hcard := Finset.card_le_card hsubset
+  rw [Finset.card_pair (G.ne_of_adj huv)] at hcard
+  have hx := hwidth x
+  omega
+
 /-- Every finite graph has a one-bag tree decomposition.  The deliberately
 loose bound `|V|` is enough to make the minimum defining `treewidth` total,
 including for empty vertex types. -/
