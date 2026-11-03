@@ -20,7 +20,7 @@ Throughout, $Q_n = G(n, c/n)$, $P_n$ plants a uniformly random copy of a determi
 
 All declarations live in the `LowDegree` namespace. The treewidth hypothesis of Theorem 1.1, $\operatorname{tw}(\Gamma_n) = o(D_n/\log n)$, is stated without division. For every numbered statement in the paper, [`docs/PAPER_MAP.md`](docs/PAPER_MAP.md) lists the Lean declaration and module, notes how faithful the formal statement is, and gives its proof status.
 
-> **Numbering.** `PAPER_MAP.md` follows the August 2026 numbering. The current version of the paper adds Remark A.2 to Appendix A, which shifts the later appendix labels by one: Theorem A.2 → **A.3**, Lemma A.3 → **A.4**, Lemma A.4 → **A.5**, Lemma A.5 → **A.6**. All other numbers are unchanged.
+> **Numbering.** Statement numbers here and in `PAPER_MAP.md` follow the November 2026 version of the paper (the STOC 2027 submission).
 
 ## What is formalized
 
