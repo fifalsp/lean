@@ -8,7 +8,7 @@ own Lean and mathlib versions.
 
 | Started | Project | Status |
 | --- | --- | --- |
-| 2026-08 | [Rigorous Low-Degree Implications for Planted Subgraph Detection: Noise and Treewidth](2608-low-degree-indistinguishability/) | Theorems 1.1, 1.2, and A.2 formalized in Lean |
+| 2026-08 | [Rigorous Low-Degree Implications for Planted Subgraph Detection: Noise and Treewidth](2608-low-degree-indistinguishability/) | All numbered results proved, including Theorems 1.1, 1.2, and A.3; no `sorry` or axioms |
 
 ## Repository convention
 
